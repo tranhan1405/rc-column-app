@@ -32,7 +32,7 @@ If you use this application, please cite the archived version and the paper:
 Tran, V.H. (2026). RC Column Seismic Model: nonlinear modelling parameters of rectangular RC columns from design data (v1.1). Zenodo. https://doi.org/10.5281/zenodo.23622291
 
 
-Tran, V.H., et al. Reliability of design-based predictions of nonlinear modelling parameters for reinforced concrete columns. Manuscript in preparation.
+Tran, V.H., et al. Reliability of design-based predictions for reinforced concrete columns: the test-programme effect. Manuscript in preparation.
 
 ## License
 
