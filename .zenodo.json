@@ -1,0 +1,10 @@
+{
+  "title": "RC Column Seismic Model: nonlinear modelling parameters of rectangular RC columns from design data",
+  "upload_type": "software",
+  "description": "Browser application that predicts the drifts at yield, peak force and 20 % strength loss, design values, test anchoring, collapse fragility and a Pinching4 command for OpenSees for rectangular reinforced concrete columns from design data. Models fitted to 299 cyclic tests from 64 test programmes.",
+  "creators": [
+    {"name": "Tran, Van Han", "affiliation": "INSA Rennes, LGCGM"}
+  ],
+  "license": "MIT",
+  "keywords": ["reinforced concrete columns", "nonlinear modelling parameters", "seismic assessment", "OpenSees", "Pinching4"]
+}

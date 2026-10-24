@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Nonlinear modelling parameters, design values and collapse fragility of rectangular RC columns from design data.">
+<title>RC Column Seismic Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;650;750&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: calculation sheet - inputs on the left as a narrow form column, results on the right as numbered sheets */
+  :root {
+    --bg: #eef1f3;
+    --sheet: #ffffff;
+    --ink: #1c242b;
+    --muted: #5b6873;
+    --rule: #cfd6dc;
+    --accent: #1f5f8b;
+    --accent-soft: #dbe8f2;
+    --code: #b54708;
+    --warn: #8a5a00;
+    --warn-bg: #fdf3dc;
+    --bad: #a1271b;
+    --bad-bg: #fbe6e3;
+    --ok: #2f6b3a;
+    --chart-2: #b54708;
+    --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12171c; --sheet: #1a2128; --ink: #e3e8ec; --muted: #9aa7b2; --rule: #2e3943;
+      --accent: #7fb6dd; --accent-soft: #1f3445; --code: #f0a35e; --warn: #f2c66d; --warn-bg: #3a2f14;
+      --bad: #f09086; --bad-bg: #3d1f1b; --ok: #8fcf9a; --chart-2: #f0a35e; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12171c; --sheet: #1a2128; --ink: #e3e8ec; --muted: #9aa7b2; --rule: #2e3943;
+    --accent: #7fb6dd; --accent-soft: #1f3445; --code: #f0a35e; --warn: #f2c66d; --warn-bg: #3a2f14;
+    --bad: #f09086; --bad-bg: #3d1f1b; --ok: #8fcf9a; --chart-2: #f0a35e; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.45; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding-block: 24px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 20px; }
+  h1 { font-family: var(--display); font-weight: 750; font-size: 1.75rem; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+  .lede { color: var(--muted); max-width: 70ch; margin: 4px 0 0; }
+  .grid { display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  form, .sheet { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; }
+  form { padding: 16px; display: grid; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+  @media (max-width: 900px) { form { position: static; } }
+  fieldset { border: 0; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; }
+  legend { font-family: var(--display); font-weight: 650; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--accent); margin-bottom: 6px; padding: 0; }
+  label { display: grid; grid-template-rows: 1fr auto; gap: 3px; font-size: 0.8rem; color: var(--muted); min-width: 0; }
+  label .lt { align-self: end; line-height: 1.3; }
+  label span.u { display: block; color: var(--muted); font-size: 0.72rem; }
+  input { font-family: var(--mono); font-size: 0.9rem; padding: 5px 7px; border: 1px solid var(--rule); border-radius: 4px;
+    background: var(--bg); color: var(--ink); width: 100%; min-width: 0; }
+  input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  fieldset.tests { grid-template-columns: auto 1fr 1fr; align-items: center; }
+  fieldset.tests .hint { grid-column: 1 / -1; margin: 0 0 2px; font-size: 0.75rem; color: var(--muted); }
+  fieldset.tests .th { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  fieldset.tests .rl { font-size: 0.8rem; color: var(--muted); white-space: nowrap; padding-right: 4px; }
+  .example { font-size: 0.75rem; color: var(--muted); border-top: 1px dashed var(--rule); padding-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button { font-family: var(--body); font-size: 0.8rem; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink);
+    border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+  button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+  .results { display: grid; gap: 16px; min-width: 0; }
+  .sheet { padding: 16px 18px; min-width: 0; }
+  .sheet h2 { font-family: var(--display); font-weight: 650; font-size: 1.05rem; margin: 0 0 2px; display: flex; gap: 10px; align-items: baseline; }
+  .sheet h2 .no { font-family: var(--mono); font-weight: 500; font-size: 0.8rem; color: var(--accent); }
+  .sheet .sub { color: var(--muted); font-size: 0.82rem; margin: 0 0 12px; max-width: 80ch; }
+  .summary { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-bottom: 10px; font-size: 0.85rem; }
+  .summary b { font-family: var(--mono); font-weight: 500; }
+  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  @media (max-width: 700px) { .two { grid-template-columns: minmax(0, 1fr); } }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-weight: 600; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  td.num { font-family: var(--mono); }
+  td.flag { color: var(--bad); }
+  pre.cmd { font-family: var(--mono); font-size: 0.78rem; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 10px; overflow-x: auto; white-space: pre; margin: 8px 0 0; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
+  svg { width: 100%; height: auto; max-width: 100%; display: block; }
+  svg text { fill: var(--muted); font-family: var(--body); font-size: 11px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+  .legend .key { display: inline-flex; align-items: center; gap: 6px; }
+  .legend svg { width: 22px; display: inline-block; }
+  .warn-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .warn-list li { padding: 7px 10px; border-radius: 4px; font-size: 0.85rem; }
+  .warn-list li.range, .warn-list li.limit { background: var(--warn-bg); color: var(--warn); }
+  .warn-list li.code { background: var(--bad-bg); color: var(--bad); }
+  .warn-list li.none { background: var(--accent-soft); color: var(--ink); }
+  .prob { font-family: var(--mono); font-size: 1.6rem; font-weight: 500; }
+  .note { font-size: 0.78rem; color: var(--muted); margin: 10px 0 0; max-width: 90ch; }
+  footer { margin-top: 20px; font-size: 0.78rem; color: var(--muted); max-width: 100ch; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>RC Column Seismic Model</h1>
+      <p class="lede">From the design data of a rectangular reinforced concrete column: a Pinching4 model for OpenSees, deformation capacities beside ASCE/SEI 41-17 and EN 1998-3, and collapse fragility, each with its out-of-sample error from 299 cyclic tests.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <form id="f" novalidate>
+      <fieldset>
+        <legend>Geometry</legend>
+        <label for="b"><span class="lt">Width b <span class="u">mm, perpendicular to load</span></span><input id="b" type="number" step="any" value="400"></label>
+        <label for="h"><span class="lt">Depth h <span class="u">mm, parallel to load</span></span><input id="h" type="number" step="any" value="400"></label>
+        <label for="ls"><span class="lt">Shear span L<sub>s</sub> <span class="u">mm</span></span><input id="ls" type="number" step="any" value="1400"></label>
+        <label for="cover"><span class="lt">Clear cover <span class="u">mm</span></span><input id="cover" type="number" step="any" value="35"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Materials</legend>
+        <label for="fc"><span class="lt">f′<sub>c</sub> <span class="u">MPa</span></span><input id="fc" type="number" step="any" value="32"></label>
+        <label for="fyl"><span class="lt">f<sub>y</sub> longitudinal <span class="u">MPa</span></span><input id="fyl" type="number" step="any" value="460"></label>
+        <label for="fyt"><span class="lt">f<sub>y</sub> hoops <span class="u">MPa</span></span><input id="fyt" type="number" step="any" value="420"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Reinforcement</legend>
+        <label for="rho_l"><span class="lt">ρ<sub>l</sub> total <span class="u">%</span></span><input id="rho_l" type="number" step="any" value="2.0"></label>
+        <label for="d_hoop"><span class="lt">Hoop bar <span class="u">mm diameter</span></span><input id="d_hoop" type="number" step="any" value="10"></label>
+        <label for="legs"><span class="lt">Hoop legs <span class="u">parallel to load</span></span><input id="legs" type="number" step="1" value="3"></label>
+        <label for="s"><span class="lt">Hoop spacing s <span class="u">mm</span></span><input id="s" type="number" step="any" value="100"></label>
+        <label for="n_perp"><span class="lt">Intermediate bars <span class="u">per face ⟂ load</span></span><input id="n_perp" type="number" step="1" value="1"></label>
+        <label for="n_par"><span class="lt">Intermediate bars <span class="u">per face ∥ load</span></span><input id="n_par" type="number" step="1" value="1"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Axial load</legend>
+        <label for="P"><span class="lt">P <span class="u">kN, compression</span></span><input id="P" type="number" step="any" value="1024"></label>
+        <label><span class="lt">ν = P / (b h f′<sub>c</sub>)</span><input id="nu_out" type="text" readonly tabindex="-1"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Seismic demand</legend>
+        <label for="T"><span class="lt">Period T <span class="u">s</span></span><input id="T" type="number" step="any" value="0.5"></label>
+        <label for="mass"><span class="lt">Mass m <span class="u">t, tributary</span></span><input id="mass" type="number" step="any" value="60"></label>
+        <label for="sa"><span class="lt">S<sub>a</sub>(T) <span class="u">g, 5 % damping</span></span><input id="sa" type="number" step="any" value="0.8"></label>
+      </fieldset>
+      <fieldset class="tests">
+        <legend>Tests on the same column type (optional)</legend>
+        <p class="hint">Up to two cyclic tests of columns with the same design, from the same programme (materials, detailing, laboratory). Leave empty if none.</p>
+        <span class="th"></span><span class="th">Test 1</span><span class="th">Test 2</span>
+        <span class="rl">θ<sub>y</sub> %</span><input id="t1_ty" type="number" step="any" aria-label="Test 1 yield drift, percent"><input id="t2_ty" type="number" step="any" aria-label="Test 2 yield drift, percent">
+        <span class="rl">θ<sub>p</sub> %</span><input id="t1_tp" type="number" step="any" aria-label="Test 1 drift at peak force, percent"><input id="t2_tp" type="number" step="any" aria-label="Test 2 drift at peak force, percent">
+        <span class="rl">θ<sub>80</sub> %</span><input id="t1_t80" type="number" step="any" aria-label="Test 1 drift at 20 percent strength loss, percent"><input id="t2_t80" type="number" step="any" aria-label="Test 2 drift at 20 percent strength loss, percent">
+        <span class="rl">F<sub>peak</sub> kN</span><input id="t1_v" type="number" step="any" aria-label="Test 1 peak force, kN"><input id="t2_v" type="number" step="any" aria-label="Test 2 peak force, kN">
+      </fieldset>
+      <div class="example">Example column, not a tested specimen. <button type="button" id="reset">Reset example</button></div>
+    </form>
+
+    <div class="results">
+      <section class="sheet" aria-labelledby="h-def">
+        <h2 id="h-def"><span class="no">1</span>Deformation capacities</h2>
+        <p class="sub">Chord rotation (drift) at the equivalent yield point, at peak force and at a 20 % drop in lateral strength. Tool values are medians with 16–84 % bounds from the out-of-sample error, and design values exceeded by 95 % and 90 % of tests (from design data, or anchored on the tests entered).</p>
+        <div class="summary" id="sum-def"></div>
+        <div class="tablewrap"><table id="t-def"></table></div>
+        <p class="note">ASCE/SEI 41-17 Table 10-8 (point C = θ<sub>y</sub> + a, a median value per the ACI 369.1M-17 Commentary) and EN 1998-3 Eq. (A.1) (γ<sub>el</sub> = 1; divide by 1.5 for primary elements) are computed from the same inputs. Validation leaving out whole test programmes (299 tests, 64 programmes): tool σ<sub>ln</sub> 0.44–0.61 without bias (tests without 20 % strength loss as lower bounds), but θ<sub>80</sub> overestimated by 23 % for lightly confined, shear-critical columns of the ACI 369 set; ASCE 41-17 σ<sub>ln</sub> 0.78 at 20 % strength loss (PEER); for flexure-controlled PEER columns the measured drift at 20 % strength loss was 0.85 of the EN 1998-3 value (median), and 35 % of the tests fell below θ<sub>um</sub>/1.5. Design factor on the median at 20 % strength loss: 0.37 (5 %) and 0.48 (10 %) from design data; one test of the same column type raises it by about 30 %.</p>
+      </section>
+
+      <section class="sheet" aria-labelledby="h-frag">
+        <h2 id="h-frag"><span class="no">2</span>Collapse fragility</h2>
+        <p class="sub">Probability of reaching peak strength (LS1) and a 20 % strength loss (LS80, the near-collapse state of EN 1998-3) for the single-degree-of-freedom system of period T and mass m. Lognormal in S<sub>a</sub>(T); β combines record-to-record, prediction and strength uncertainty.</p>
+        <div class="two">
+          <div id="frag-num"></div>
+          <div id="frag-chart"></div>
+        </div>
+        <p class="note">Basis: incremental dynamic analysis with the 44 FEMA P695 far-field records on 299 calibrated Pinching4 models (about 10 million analyses). Out-of-sample error of the median collapse intensity at LS80: σ<sub>ln</sub> 0.23–0.33 with no systematic bias, against σ<sub>ln</sub> 0.26–0.63 and a median overestimate of 8–70 % for backbones from ASCE 41-17 or Haselton et al. (2016) analysed in the same way.</p>
+      </section>
+
+      <section class="sheet" aria-labelledby="h-model">
+        <h2 id="h-model"><span class="no">3</span>Pinching4 model for OpenSees</h2>
+        <p class="sub">Lateral force–displacement spring (kN, mm) at the column end: backbone from the predicted capacities and strength, cyclic parameters as medians of the 245 calibrated PEER columns of the same shear class.</p>
+        <div class="summary" id="sum-model"></div>
+        <div class="two">
+          <div id="bb-chart"></div>
+          <div class="tablewrap"><table id="t-cyc"></table></div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button type="button" id="lang-tcl" aria-pressed="true">Tcl</button>
+          <button type="button" id="lang-py" aria-pressed="false">OpenSeesPy</button>
+          <button type="button" id="copy">Copy command</button>
+          <span id="copied" class="note" style="margin:0" aria-live="polite"></span>
+        </div>
+        <pre class="cmd" id="cmd"></pre>
+        <p class="note">Replayed under the 299 test histories (out of sample), this model gave a median response error J of 0.33, against 0.44–0.46 with the ASCE 41-17 backbone and the same cyclic parameters, and 0.28 with the measured backbone. It was better than the ASCE 41-17 model for 81–85 % of the columns.</p>
+      </section>
+
+      <section class="sheet" aria-labelledby="h-warn">
+        <h2 id="h-warn"><span class="no">4</span>Checks</h2>
+        <p class="sub">Inputs outside the tested range, limits of the code expressions, and code values less conservative than the tool.</p>
+        <ul class="warn-list" id="warn"></ul>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    Tests entered on the same column type shift each median by a shrinkage factor fitted to the between- and within-programme variances of the 299 tests; the design factors with one and two tests were validated by leaving out whole programmes. Tested range: rectangular columns, 299 cyclic tests (PEER structural performance database, 245; ACI 369 rectangular column database, 54). Single-degree-of-freedom response with 5 % damping, no P–Δ. Fragility periods analysed: 0.3, 0.6 and 1.0 s. Model version <span id="ver"></span>.
+  </footer>
+</div>
+
+<script src="model.js"></script>
+<script src="core.js"></script>
+<script>
+(function () {
+  "use strict";
+  const M = window.APP_MODEL;
+  const ids = ["b", "h", "ls", "cover", "fc", "fyl", "fyt", "rho_l", "d_hoop", "legs", "s", "n_perp", "n_par", "P", "T", "mass", "sa"];
+  const defaults = {};
+  ids.forEach((k) => { defaults[k] = document.getElementById(k).value; });
+  let lang = "tcl";
+  const fmt = (x, d) => Number.isFinite(x) ? x.toFixed(d) : "–";
+  const pct = (x) => Number.isFinite(x) ? (100 * x).toFixed(2) + " %" : "–";
+  const NAMES = { b: "b", h: "h", ls: "L_s", ls_h: "L_s/h", fc: "f'c", fyl: "f_y", fyt: "f_yt", rho_l: "ρ_l",
+    rho_sh: "ρ_sh", nu: "ν", s: "s", vp_vo: "V_p/V_o", cover: "cover" };
+
+  function read() {
+    const v = {};
+    ids.forEach((k) => { v[k] = parseFloat(document.getElementById(k).value); });
+    const c = { b: v.b, h: v.h, ls: v.ls, cover: v.cover, fc: v.fc, fyl: v.fyl, fyt: v.fyt, rho_l: v.rho_l / 100,
+      d_hoop: v.d_hoop, s: v.s, n_perp: v.n_perp, n_par: v.n_par,
+      rho_sh: v.legs * Math.PI * v.d_hoop * v.d_hoop / 4 / (v.b * v.s), nu: v.P * 1e3 / (v.b * v.h * v.fc) };
+    const tv = (a) => a.map((k) => parseFloat(document.getElementById(k).value)).filter((x) => Number.isFinite(x) && x > 0);
+    const tests = { theta_y: tv(["t1_ty", "t2_ty"]).map((x) => x / 100), theta_p: tv(["t1_tp", "t2_tp"]).map((x) => x / 100),
+      theta_80: tv(["t1_t80", "t2_t80"]).map((x) => x / 100), v_peak: tv(["t1_v", "t2_v"]) };
+    return { c: c, demand: { T: v.T, mass_t: v.mass, sa_g: v.sa }, tests: tests, ok: Object.values(v).every(Number.isFinite) };
+  }
+
+  function chart(series, opts) {
+    const W = 420, H = 260, L = 46, R = 12, T = 12, B = 38;
+    const xs = series.flatMap((s) => s.pts.map((p) => p[0])), ys = series.flatMap((s) => s.pts.map((p) => p[1]));
+    const xmax = opts.xmax || Math.max(...xs) * 1.05, ymax = opts.ymax || Math.max(...ys) * 1.1;
+    const sx = (x) => L + (W - L - R) * x / xmax, sy = (y) => H - B - (H - T - B) * y / ymax;
+    const tick = (m) => { const e = Math.pow(10, Math.floor(Math.log10(m / 4))); const f = m / 4 / e; return (f < 1.5 ? 1 : f < 3.5 ? 2 : 5) * e; };
+    let g = "";
+    const dx = tick(xmax), dy = tick(ymax);
+    for (let x = 0; x <= xmax + 1e-12; x += dx) g += `<line x1="${sx(x)}" x2="${sx(x)}" y1="${T}" y2="${H - B}" stroke="var(--rule)" stroke-width="0.6"/><text x="${sx(x)}" y="${H - B + 14}" text-anchor="middle">${+x.toPrecision(3)}</text>`;
+    for (let y = 0; y <= ymax + 1e-12; y += dy) g += `<line x1="${L}" x2="${W - R}" y1="${sy(y)}" y2="${sy(y)}" stroke="var(--rule)" stroke-width="0.6"/><text x="${L - 6}" y="${sy(y) + 4}" text-anchor="end">${+y.toPrecision(3)}</text>`;
+    g += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">${opts.xlabel}</text>`;
+    g += `<text transform="translate(12 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle">${opts.ylabel}</text>`;
+    series.forEach((s) => {
+      const d = s.pts.map((p, i) => (i ? "L" : "M") + sx(p[0]).toFixed(1) + " " + sy(p[1]).toFixed(1)).join(" ");
+      g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" ${s.dash ? 'stroke-dasharray="5 4"' : ""}/>`;
+      if (s.dots) s.pts.forEach((p) => { g += `<circle cx="${sx(p[0])}" cy="${sy(p[1])}" r="3" fill="${s.color}"/>`; });
+    });
+    (opts.marks || []).forEach((m) => {
+      const right = sx(m.x) > W - R - 60;
+      g += `<line x1="${sx(m.x)}" x2="${sx(m.x)}" y1="${T}" y2="${H - B}" stroke="var(--ink)" stroke-width="1" stroke-dasharray="2 3"/><text x="${sx(m.x) + (right ? -4 : 4)}" y="${H - B - 6}" text-anchor="${right ? "end" : "start"}" style="fill:var(--ink)">${m.label}</text>`;
+    });
+    const lg = series.map((s) => `<span class="key"><svg width="22" height="10" aria-hidden="true"><line x1="0" x2="22" y1="5" y2="5" stroke="${s.color}" stroke-width="2" ${s.dash ? 'stroke-dasharray="5 4"' : ""}/></svg>${s.name}</span>`).join("");
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.aria}">${g}</svg><div class="legend">${lg}</div>`;
+  }
+
+  function command(bb, cyc) {
+    const a = ColumnModel.pinching4Args(1, bb, cyc).map((x, i) => i === 0 ? String(x) : (+x.toPrecision(5)).toString());
+    if (lang === "tcl") {
+      return "# units kN, mm; zeroLength spring in the lateral direction\n" +
+        "uniaxialMaterial Pinching4 " + a[0] + " \\\n  " + a.slice(1, 9).join(" ") + " \\\n  " + a.slice(9, 17).join(" ") +
+        " \\\n  " + a.slice(17, 23).join(" ") + " \\\n  " + a.slice(23, 28).join(" ") + " \\\n  " + a.slice(28, 33).join(" ") +
+        " \\\n  " + a.slice(33, 38).join(" ") + " \\\n  " + a[38] + " energy";
+    }
+    return "# units kN, mm; zeroLength spring in the lateral direction\nimport openseespy.opensees as ops\n" +
+      "ops.uniaxialMaterial('Pinching4', " + a[0] + ",\n    " + a.slice(1, 9).join(", ") + ",\n    " + a.slice(9, 17).join(", ") +
+      ",\n    " + a.slice(17, 23).join(", ") + ",\n    " + a.slice(23, 28).join(", ") + ",\n    " + a.slice(28, 33).join(", ") +
+      ",\n    " + a.slice(33, 38).join(", ") + ",\n    " + a[38] + ", 'energy')";
+  }
+
+  function render() {
+    const { c, demand, tests, ok } = read();
+    document.getElementById("nu_out").value = Number.isFinite(c.nu) ? c.nu.toFixed(3) : "";
+    if (!ok || c.b <= 0 || c.h <= 0 || c.ls <= 0 || c.s <= 0 || c.fc <= 0) {
+      document.getElementById("warn").innerHTML = '<li class="limit">Enter positive values in every field to compute the model.</li>';
+      return;
+    }
+    const r = ColumnModel.compute(c, M, demand, tests);
+    const w = ColumnModel.warnings(c, r, M, demand);
+
+    // 1 deformation
+    const D = r.deform, A = r.asce41, E = r.ec8;
+    const nt = Math.max(D.theta_y.k, D.theta_p.k, D.theta_80.k, r.strength.k);
+    document.getElementById("sum-def").innerHTML =
+      `<span>Shear class <b>${r.cls}</b></span><span>V<sub>p</sub>/V<sub>o</sub> <b>${fmt(r.vp_vo, 2)}</b></span><span>ρ<sub>sh</sub> <b>${fmt(100 * c.rho_sh, 2)} %</b></span>` +
+      `<span>Basis <b>${nt ? "anchored on " + nt + " test" + (nt > 1 ? "s" : "") : "design data only"}</b></span>`;
+    const cells = (q) => `<td class="num">${pct(q.median)}</td><td class="num">${pct(q.lo)}</td><td class="num">${pct(q.hi)}</td><td class="num">${pct(q.d05)}</td><td class="num">${pct(q.d10)}</td>`;
+    const flagA = Number.isFinite(A.theta_C) && A.theta_C > D.theta_80.hi ? " flag" : "";
+    const flagE = E.theta_um > D.theta_80.hi ? " flag" : "";
+    document.getElementById("t-def").innerHTML =
+      "<thead><tr><th>Drift</th><th>Tool median</th><th>16 %</th><th>84 %</th><th>Design 5 %</th><th>Design 10 %</th><th>ASCE 41-17</th><th>EN 1998-3</th></tr></thead><tbody>" +
+      `<tr><td>Yield θ<sub>y</sub></td>${cells(D.theta_y)}<td class="num">${pct(A.theta_y)}</td><td class="num">–</td></tr>` +
+      `<tr><td>Peak force θ<sub>p</sub></td>${cells(D.theta_p)}<td class="num">–</td><td class="num">–</td></tr>` +
+      `<tr><td>20 % strength loss θ<sub>80</sub></td>${cells(D.theta_80)}<td class="num${flagA}">${pct(A.theta_C)} <span class="u">(C)</span></td><td class="num${flagE}">${pct(E.theta_um)}</td></tr>` +
+      "</tbody>";
+
+    // 2 fragility
+    const F = r.fragility;
+    document.getElementById("frag-num").innerHTML =
+      `<div class="tablewrap"><table><thead><tr><th></th><th>LS1 peak</th><th>LS80 near collapse</th></tr></thead><tbody>` +
+      `<tr><td>P(exceed | S<sub>a</sub> = ${fmt(demand.sa_g, 2)} g)</td><td class="num">${(100 * F.LS1.p).toFixed(1)} %</td><td class="num"><span class="prob">${(100 * F.LS80.p).toFixed(1)} %</span></td></tr>` +
+      `<tr><td>Median S<sub>a</sub> (g)</td><td class="num">${fmt(F.LS1.sa50, 2)}</td><td class="num">${fmt(F.LS80.sa50, 2)}</td></tr>` +
+      `<tr><td>Median R = m S<sub>a</sub>/V</td><td class="num">${fmt(F.LS1.thetaR, 2)}</td><td class="num">${fmt(F.LS80.thetaR, 2)}</td></tr>` +
+      `<tr><td>β total</td><td class="num">${fmt(F.LS1.beta, 2)}</td><td class="num">${fmt(F.LS80.beta, 2)}</td></tr>` +
+      `<tr><td>β record-to-record</td><td class="num">${fmt(F.LS1.beta_rtr, 2)}</td><td class="num">${fmt(F.LS80.beta_rtr, 2)}</td></tr>` +
+      `<tr><td>Demand R</td><td class="num" colspan="2">${fmt(F.LS80.R, 2)}</td></tr></tbody></table></div>`;
+    const sMax = Math.max(F.LS80.sa50 * Math.exp(2.2 * F.LS80.beta), demand.sa_g * 1.2);
+    const curve = (fr) => Array.from({ length: 81 }, (_, i) => { const s = sMax * (i + 0.001) / 80; return [s, ColumnModel.phi(Math.log(s / fr.sa50) / fr.beta)]; });
+    document.getElementById("frag-chart").innerHTML = chart([
+      { name: "LS1 peak", pts: curve(F.LS1), color: "var(--accent)", dash: true },
+      { name: "LS80 near collapse", pts: curve(F.LS80), color: "var(--chart-2)" }],
+      { xmax: sMax, ymax: 1, xlabel: "Sa(T) (g)", ylabel: "Probability of exceedance", aria: "Fragility curves",
+        marks: [{ x: demand.sa_g, label: "demand" }] });
+
+    // 3 model
+    const bb = r.backbone;
+    document.getElementById("sum-model").innerHTML =
+      `<span>V<sub>p</sub> (flexure) <b>${fmt(r.vp, 0)} kN</b></span><span>Peak force <b>${fmt(r.v_peak, 0)} kN</b> <span class="u">σ<sub>ln</sub> ${fmt(r.v_sigma, 2)}; design 5 % ${fmt(r.strength.d05, 0)} kN</span></span>`;
+    const ab = Number.isFinite(A.theta_C) ? (() => {
+      const ue = Math.max(A.theta_E, A.theta_C * 1.01), cr = Math.max(A.c, 0.05);
+      return [[0, 0], [A.theta_y * c.ls, r.vp], [A.theta_C * c.ls, r.vp], [(A.theta_C + 0.05 * (ue - A.theta_C)) * c.ls, cr * r.vp], [ue * c.ls, cr * r.vp]];
+    })() : null;
+    const ser = [{ name: "Tool backbone", pts: [[0, 0], ...bb], color: "var(--accent)", dots: true }];
+    if (ab) ser.push({ name: "ASCE 41-17", pts: ab, color: "var(--chart-2)", dash: true });
+    document.getElementById("bb-chart").innerHTML = chart(ser, { xlabel: "Lateral displacement (mm)", ylabel: "Force (kN)", aria: "Backbone curves" });
+    const cy = r.cyclic;
+    document.getElementById("t-cyc").innerHTML = "<thead><tr><th>Pinching4</th><th>Value</th></tr></thead><tbody>" +
+      [["rDisp", cy.rDisp], ["rForce", cy.rForce], ["uForce", cy.uForce], ["gK1 (stiffness)", cy.gK], ["gD1 (deformation)", cy.gD]]
+        .map((p) => `<tr><td>${p[0]}</td><td class="num">${fmt(p[1], 3)}</td></tr>`).join("") +
+      bb.map((p, i) => `<tr><td>Point ${i + 1} (mm, kN)</td><td class="num">${fmt(p[0], 1)}, ${fmt(p[1], 0)}</td></tr>`).join("") + "</tbody>";
+    document.getElementById("cmd").textContent = command(bb, cy);
+
+    // 4 checks
+    const items = w.map((x) => x.level === "range"
+      ? `<li class="range">${NAMES[x.key] || x.key} = ${(+x.value.toPrecision(3))} is outside the tested range ${+x.range[0].toPrecision(3)}–${+x.range[1].toPrecision(3)}.</li>`
+      : `<li class="${x.level}">${x.text}</li>`);
+    document.getElementById("warn").innerHTML = items.length ? items.join("") : '<li class="none">All inputs are inside the tested range and no code value is less conservative than the tool.</li>';
+  }
+
+  const testIds = ["t1_ty", "t2_ty", "t1_tp", "t2_tp", "t1_t80", "t2_t80", "t1_v", "t2_v"];
+  ids.concat(testIds).forEach((k) => document.getElementById(k).addEventListener("input", render));
+  document.getElementById("f").addEventListener("submit", (e) => e.preventDefault());
+  document.getElementById("reset").addEventListener("click", () => { ids.forEach((k) => { document.getElementById(k).value = defaults[k]; }); testIds.forEach((k) => { document.getElementById(k).value = ""; }); render(); });
+  const setLang = (l) => { lang = l; document.getElementById("lang-tcl").setAttribute("aria-pressed", l === "tcl"); document.getElementById("lang-py").setAttribute("aria-pressed", l === "py"); render(); };
+  document.getElementById("lang-tcl").addEventListener("click", () => setLang("tcl"));
+  document.getElementById("lang-py").addEventListener("click", () => setLang("py"));
+  document.getElementById("copy").addEventListener("click", () => {
+    const t = document.getElementById("cmd").textContent, msg = document.getElementById("copied");
+    const fallback = () => { const rg = document.createRange(); rg.selectNodeContents(document.getElementById("cmd")); const s = window.getSelection(); s.removeAllRanges(); s.addRange(rg); msg.textContent = "Selected; press Ctrl+C."; };
+    try { navigator.clipboard.writeText(t).then(() => { msg.textContent = "Copied."; }, fallback); } catch (e) { fallback(); }
+  });
+  document.getElementById("ver").textContent = M.version;
+  render();
+})();
+</script>
+
+</body>
+</html>
