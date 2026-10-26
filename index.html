@@ -26,18 +26,7 @@
     --body: Helvetica, Arial, sans-serif;
     --mono: Consolas, "Courier New", monospace;
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #12171c; --sheet: #1a2128; --ink: #e3e8ec; --muted: #9aa7b2; --rule: #2e3943;
-      --accent: #7fb6dd; --accent-soft: #1f3445; --code: #f0a35e; --warn: #f2c66d; --warn-bg: #3a2f14;
-      --bad: #f09086; --bad-bg: #3d1f1b; --ok: #8fcf9a; --chart-2: #f0a35e; color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #12171c; --sheet: #1a2128; --ink: #e3e8ec; --muted: #9aa7b2; --rule: #2e3943;
-    --accent: #7fb6dd; --accent-soft: #1f3445; --code: #f0a35e; --warn: #f2c66d; --warn-bg: #3a2f14;
-    --bad: #f09086; --bad-bg: #3d1f1b; --ok: #8fcf9a; --chart-2: #f0a35e; color-scheme: dark;
-  }
+  :root { color-scheme: light; }
   * { box-sizing: border-box; }
   body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 13px; line-height: 1.4; margin: 0; }
   .wrap { max-width: 1240px; margin: 0 auto; padding-block: 24px 48px;
