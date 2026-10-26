@@ -5,28 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Nonlinear modelling parameters, design values and collapse fragility of rectangular RC columns from design data.">
 <title>RC Column Seismic Model</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;650;750&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   /* Layout: calculation sheet - inputs on the left as a narrow form column, results on the right as numbered sheets */
   :root {
-    --bg: #eef1f3;
+    --bg: #f0f0f0;
     --sheet: #ffffff;
-    --ink: #1c242b;
-    --muted: #5b6873;
-    --rule: #cfd6dc;
-    --accent: #1f5f8b;
-    --accent-soft: #dbe8f2;
-    --code: #b54708;
+    --ink: #000000;
+    --muted: #4d4d4d;
+    --rule: #c8c8c8;
+    --accent: #0072bd;
+    --accent-soft: #dcebf7;
+    --code: #d95319;
     --warn: #8a5a00;
     --warn-bg: #fdf3dc;
     --bad: #a1271b;
     --bad-bg: #fbe6e3;
     --ok: #2f6b3a;
-    --chart-2: #b54708;
-    --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
-    --body: "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
-    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    --chart-2: #d95319;
+    --display: Helvetica, Arial, sans-serif;
+    --body: Helvetica, Arial, sans-serif;
+    --mono: Consolas, "Courier New", monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -41,49 +39,51 @@
     --bad: #f09086; --bad-bg: #3d1f1b; --ok: #8fcf9a; --chart-2: #f0a35e; color-scheme: dark;
   }
   * { box-sizing: border-box; }
-  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.45; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 13px; line-height: 1.4; margin: 0; }
   .wrap { max-width: 1240px; margin: 0 auto; padding-block: 24px 48px;
     padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
   header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 20px; }
-  h1 { font-family: var(--display); font-weight: 750; font-size: 1.75rem; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: 1.35rem; margin: 0; }
   .lede { color: var(--muted); max-width: 70ch; margin: 4px 0 0; }
   .grid { display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: 20px; align-items: start; }
   @media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
-  form, .sheet { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; }
+  form, .sheet { background: var(--sheet); border: 1px solid #a0a0a0; border-radius: 0; }
   form { padding: 16px; display: grid; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
   @media (max-width: 900px) { form { position: static; } }
   fieldset { border: 0; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; }
-  legend { font-family: var(--display); font-weight: 650; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--accent); margin-bottom: 6px; padding: 0; }
+  legend { font-family: var(--display); font-weight: 700; font-size: 0.82rem; color: var(--ink); margin-bottom: 4px; padding: 0;
+    border-bottom: 1px solid var(--rule); width: 100%; }
   label { display: grid; grid-template-rows: 1fr auto; gap: 3px; font-size: 0.8rem; color: var(--muted); min-width: 0; }
   label .lt { align-self: end; line-height: 1.3; }
   label span.u { display: block; color: var(--muted); font-size: 0.72rem; }
-  input { font-family: var(--mono); font-size: 0.9rem; padding: 5px 7px; border: 1px solid var(--rule); border-radius: 4px;
-    background: var(--bg); color: var(--ink); width: 100%; min-width: 0; }
+  input { font-family: var(--body); font-size: 0.9rem; padding: 3px 5px; border: 1px solid #a0a0a0; border-radius: 0;
+    background: #ffffff; color: var(--ink); width: 100%; min-width: 0; text-align: right; }
   input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   fieldset.tests { grid-template-columns: auto 1fr 1fr; align-items: center; }
   fieldset.tests .hint { grid-column: 1 / -1; margin: 0 0 2px; font-size: 0.75rem; color: var(--muted); }
-  fieldset.tests .th { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  fieldset.tests .th { font-size: 0.78rem; color: var(--ink); font-weight: 700; }
   fieldset.tests .rl { font-size: 0.8rem; color: var(--muted); white-space: nowrap; padding-right: 4px; }
   .example { font-size: 0.75rem; color: var(--muted); border-top: 1px dashed var(--rule); padding-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  button { font-family: var(--body); font-size: 0.8rem; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink);
-    border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+  button { font-family: var(--body); font-size: 0.8rem; border: 1px solid #a0a0a0; background: linear-gradient(#fdfdfd, #e5e5e5);
+    color: var(--ink); border-radius: 2px; padding: 3px 10px; cursor: pointer; }
   button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
   .results { display: grid; gap: 16px; min-width: 0; }
   .sheet { padding: 16px 18px; min-width: 0; }
-  .sheet h2 { font-family: var(--display); font-weight: 650; font-size: 1.05rem; margin: 0 0 2px; display: flex; gap: 10px; align-items: baseline; }
+  .sheet h2 { font-family: var(--display); font-weight: 700; font-size: 0.95rem; margin: -16px -18px 10px; padding: 5px 18px; background: #e6e6e6; border-bottom: 1px solid #a0a0a0; display: flex; gap: 8px; align-items: baseline; }
   .sheet h2 .no { font-family: var(--mono); font-weight: 500; font-size: 0.8rem; color: var(--accent); }
-  .sheet .sub { color: var(--muted); font-size: 0.82rem; margin: 0 0 12px; max-width: 80ch; }
+  .sheet .sub { color: var(--muted); font-size: 0.8rem; margin: 0 0 8px; max-width: 80ch; }
+  details.more { margin-top: 8px; font-size: 0.78rem; color: var(--muted); }
+  details.more summary { cursor: pointer; color: var(--accent); }
   .summary { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-bottom: 10px; font-size: 0.85rem; }
-  .summary b { font-family: var(--mono); font-weight: 500; }
+  .summary b { font-weight: 700; }
   .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
   @media (max-width: 700px) { .two { grid-template-columns: minmax(0, 1fr); } }
   .tablewrap { overflow-x: auto; }
   table { border-collapse: collapse; width: 100%; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
   th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
   th:first-child, td:first-child { text-align: left; }
-  th { font-weight: 600; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
-  td.num { font-family: var(--mono); }
+  th { font-weight: 700; color: var(--ink); font-size: 0.78rem; background: #f5f5f5; }
+  td.num { font-family: var(--body); }
   td.flag { color: var(--bad); }
   pre.cmd { font-family: var(--mono); font-size: 0.78rem; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px;
     padding: 10px; overflow-x: auto; white-space: pre; margin: 8px 0 0; }
@@ -91,7 +91,7 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
   svg { width: 100%; height: auto; max-width: 100%; display: block; }
-  svg text { fill: var(--muted); font-family: var(--body); font-size: 11px; }
+  svg text { fill: var(--ink); font-family: Helvetica, Arial, sans-serif; font-size: 11px; }
   .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
   .legend .key { display: inline-flex; align-items: center; gap: 6px; }
   .legend svg { width: 22px; display: inline-block; }
@@ -100,7 +100,7 @@
   .warn-list li.range, .warn-list li.limit { background: var(--warn-bg); color: var(--warn); }
   .warn-list li.code { background: var(--bad-bg); color: var(--bad); }
   .warn-list li.none { background: var(--accent-soft); color: var(--ink); }
-  .prob { font-family: var(--mono); font-size: 1.6rem; font-weight: 500; }
+  .prob { font-family: var(--body); font-size: 1.3rem; font-weight: 700; color: var(--chart-2); }
   .note { font-size: 0.78rem; color: var(--muted); margin: 10px 0 0; max-width: 90ch; }
   footer { margin-top: 20px; font-size: 0.78rem; color: var(--muted); max-width: 100ch; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -112,14 +112,14 @@
   <header>
     <div>
       <h1>RC Column Seismic Model</h1>
-      <p class="lede">From the design data of a rectangular reinforced concrete column: a Pinching4 model for OpenSees, deformation capacities beside ASCE/SEI 41-17 and EN 1998-3, and collapse fragility, each with its out-of-sample error from 299 cyclic tests.</p>
+      <p class="lede">Rectangular RC column from design data: deformation capacities, collapse fragility and a Pinching4 spring, validated on 299 cyclic tests.</p>
     </div>
   </header>
 
   <div class="grid">
     <form id="f" novalidate>
       <fieldset>
-        <legend>Geometry</legend>
+        <legend>Step 1: design data — geometry</legend>
         <label for="b"><span class="lt">Width b <span class="u">mm, perpendicular to load</span></span><input id="b" type="number" step="any" value="400"></label>
         <label for="h"><span class="lt">Depth h <span class="u">mm, parallel to load</span></span><input id="h" type="number" step="any" value="400"></label>
         <label for="ls"><span class="lt">Shear span L<sub>s</sub> <span class="u">mm</span></span><input id="ls" type="number" step="any" value="1400"></label>
@@ -152,8 +152,8 @@
         <label for="sa"><span class="lt">S<sub>a</sub>(T) <span class="u">g, 5 % damping</span></span><input id="sa" type="number" step="any" value="0.8"></label>
       </fieldset>
       <fieldset class="tests">
-        <legend>Tests on the same column type (optional)</legend>
-        <p class="hint">Up to two cyclic tests of columns with the same design, from the same programme (materials, detailing, laboratory). Leave empty if none.</p>
+        <legend>Step 3: tests of the same programme (optional)</legend>
+        <p class="hint">Up to two tests of columns built and tested like this one. Optional.</p>
         <span class="th"></span><span class="th">Test 1</span><span class="th">Test 2</span>
         <span class="rl">θ<sub>y</sub> %</span><input id="t1_ty" type="number" step="any" aria-label="Test 1 yield drift, percent"><input id="t2_ty" type="number" step="any" aria-label="Test 2 yield drift, percent">
         <span class="rl">θ<sub>p</sub> %</span><input id="t1_tp" type="number" step="any" aria-label="Test 1 drift at peak force, percent"><input id="t2_tp" type="number" step="any" aria-label="Test 2 drift at peak force, percent">
@@ -164,27 +164,26 @@
     </form>
 
     <div class="results">
-      <section class="sheet" aria-labelledby="h-def">
-        <h2 id="h-def"><span class="no">1</span>Deformation capacities</h2>
-        <p class="sub">Chord rotation (drift) at the equivalent yield point, at peak force and at a 20 % drop in lateral strength. Tool values are medians with 16–84 % bounds from the out-of-sample error, and design values exceeded by 95 % and 90 % of tests (from design data, or anchored on the tests entered).</p>
-        <div class="summary" id="sum-def"></div>
-        <div class="tablewrap"><table id="t-def"></table></div>
-        <p class="note">ASCE/SEI 41-17 Table 10-8 (point C = θ<sub>y</sub> + a, a median value per the ACI 369.1M-17 Commentary) and EN 1998-3 Eq. (A.1) (γ<sub>el</sub> = 1; divide by 1.5 for primary elements) are computed from the same inputs. Validation leaving out whole test programmes (299 tests, 64 programmes): tool σ<sub>ln</sub> 0.44–0.61 without bias (tests without 20 % strength loss as lower bounds), but θ<sub>80</sub> overestimated by 23 % for lightly confined, shear-critical columns of the ACI 369 set; ASCE 41-17 σ<sub>ln</sub> 0.78 at 20 % strength loss (PEER); for flexure-controlled PEER columns the measured drift at 20 % strength loss was 0.85 of the EN 1998-3 value (median), and 35 % of the tests fell below θ<sub>um</sub>/1.5. Design factor on the median at 20 % strength loss: 0.37 (5 %) and 0.48 (10 %) from design data; one test of the same column type raises it by about 30 %.</p>
+      <section class="sheet" aria-labelledby="h-in">
+        <h2 id="h-in"><span class="no">1</span>Design variables and range check</h2>
+        <div class="summary" id="sum-in"></div>
+        <ul class="warn-list" id="warn"></ul>
       </section>
 
-      <section class="sheet" aria-labelledby="h-frag">
-        <h2 id="h-frag"><span class="no">2</span>Collapse fragility</h2>
-        <p class="sub">Probability of reaching peak strength (LS1) and a 20 % strength loss (LS80, the near-collapse state of EN 1998-3) for the single-degree-of-freedom system of period T and mass m. Lognormal in S<sub>a</sub>(T); β combines record-to-record, prediction and strength uncertainty.</p>
-        <div class="two">
-          <div id="frag-num"></div>
-          <div id="frag-chart"></div>
-        </div>
-        <p class="note">Basis: incremental dynamic analysis with the 44 FEMA P695 far-field records on 299 calibrated Pinching4 models (about 10 million analyses). Out-of-sample error of the median collapse intensity at LS80: σ<sub>ln</sub> 0.23–0.33 with no systematic bias, against σ<sub>ln</sub> 0.26–0.63 and a median overestimate of 8–70 % for backbones from ASCE 41-17 or Haselton et al. (2016) analysed in the same way.</p>
+      <section class="sheet" aria-labelledby="h-def">
+        <h2 id="h-def"><span class="no">2–4</span>Medians and fractile values</h2>
+        <p class="sub">2: medians from the log-linear model; 3: anchored on the tests entered (optional); 4: fractile values = φ<sub>q</sub> × median.</p>
+        <div class="summary" id="sum-def"></div>
+        <div class="tablewrap"><table id="t-def"></table></div>
+        <p class="sub" style="margin-top:12px">Drift capacity by the standards (same inputs)</p>
+        <div class="tablewrap"><table id="t-code"></table></div>
+        <ul class="warn-list" id="warn-code" style="margin-top:8px"></ul>
+        <details class="more"><summary>Basis and validation</summary><p class="note">With whole test programmes held out (299 tests, 64 programmes): σ<sub>ln</sub> 0.44–0.61 without bias; θ<sub>80</sub> overestimated by 23 % for the shear-critical ACI 369 columns. Fractile factor on the median θ<sub>80</sub>: 0.37 (5 %) and 0.48 (10 %) without tests; one test of the same programme raises it by 32 %. ASCE/SEI 41-17 point C (Table 10-8) was exceeded by 69 % of the tests; the EN 1998-3 design value (γ<sub>el</sub> = 1.5) left 37 % of the flexure-controlled tests below it.</p></details>
       </section>
 
       <section class="sheet" aria-labelledby="h-model">
-        <h2 id="h-model"><span class="no">3</span>Pinching4 model for OpenSees</h2>
-        <p class="sub">Lateral force–displacement spring (kN, mm) at the column end: backbone from the predicted capacities and strength, cyclic parameters as medians of the 245 calibrated PEER columns of the same shear class.</p>
+        <h2 id="h-model"><span class="no">Output</span>Pinching4 spring from the medians</h2>
+        <p class="sub">Spring at the column end (kN, mm); cyclic parameters as shear-class medians.</p>
         <div class="summary" id="sum-model"></div>
         <div class="two">
           <div id="bb-chart"></div>
@@ -197,19 +196,23 @@
           <span id="copied" class="note" style="margin:0" aria-live="polite"></span>
         </div>
         <pre class="cmd" id="cmd"></pre>
-        <p class="note">Replayed under the 299 test histories (out of sample), this model gave a median response error J of 0.33, against 0.44–0.46 with the ASCE 41-17 backbone and the same cyclic parameters, and 0.28 with the measured backbone. It was better than the ASCE 41-17 model for 81–85 % of the columns.</p>
+        <details class="more"><summary>Basis and validation</summary><p class="note">Under the test histories with programmes held out, the median response error J was 0.33, against 0.28 with the measured backbone and 0.44–0.46 with the ASCE 41-17 backbone.</p></details>
       </section>
 
-      <section class="sheet" aria-labelledby="h-warn">
-        <h2 id="h-warn"><span class="no">4</span>Checks</h2>
-        <p class="sub">Inputs outside the tested range, limits of the code expressions, and code values less conservative than the tool.</p>
-        <ul class="warn-list" id="warn"></ul>
+      <section class="sheet" aria-labelledby="h-frag">
+        <h2 id="h-frag"><span class="no">Output</span>Collapse fragility of the spring</h2>
+        <p class="sub">Single-degree-of-freedom system of period T and mass m: peak strength (LS1) and 20 % strength loss (LS80).</p>
+        <div class="two">
+          <div id="frag-num"></div>
+          <div id="frag-chart"></div>
+        </div>
+        <details class="more"><summary>Basis and validation</summary><p class="note">Incremental dynamic analysis with the 44 FEMA P695 far-field records on 299 calibrated Pinching4 models; lognormal fragility, β combining record-to-record, prediction and strength uncertainty. Error of the median collapse intensity at LS80 with programmes held out: σ<sub>ln</sub> 0.23–0.33 without bias.</p></details>
       </section>
     </div>
   </div>
 
   <footer>
-    Tests entered on the same column type shift each median by a shrinkage factor fitted to the between- and within-programme variances of the 299 tests; the design factors with one and two tests were validated by leaving out whole programmes. Tested range: rectangular columns, 299 cyclic tests (PEER structural performance database, 245; ACI 369 rectangular column database, 54). Single-degree-of-freedom response with 5 % damping, no P–Δ. Fragility periods analysed: 0.3, 0.6 and 1.0 s. Model version <span id="ver"></span>.
+    Data: PEER structural performance database (245 columns) and ACI 369 rectangular column database (54). Model version <span id="ver"></span>.
   </footer>
 </div>
 
@@ -248,13 +251,14 @@
     const tick = (m) => { const e = Math.pow(10, Math.floor(Math.log10(m / 4))); const f = m / 4 / e; return (f < 1.5 ? 1 : f < 3.5 ? 2 : 5) * e; };
     let g = "";
     const dx = tick(xmax), dy = tick(ymax);
-    for (let x = 0; x <= xmax + 1e-12; x += dx) g += `<line x1="${sx(x)}" x2="${sx(x)}" y1="${T}" y2="${H - B}" stroke="var(--rule)" stroke-width="0.6"/><text x="${sx(x)}" y="${H - B + 14}" text-anchor="middle">${+x.toPrecision(3)}</text>`;
-    for (let y = 0; y <= ymax + 1e-12; y += dy) g += `<line x1="${L}" x2="${W - R}" y1="${sy(y)}" y2="${sy(y)}" stroke="var(--rule)" stroke-width="0.6"/><text x="${L - 6}" y="${sy(y) + 4}" text-anchor="end">${+y.toPrecision(3)}</text>`;
+    for (let x = 0; x <= xmax + 1e-12; x += dx) g += `<line x1="${sx(x)}" x2="${sx(x)}" y1="${T}" y2="${H - B}" stroke="#e3e3e3" stroke-width="0.6"/><line x1="${sx(x)}" x2="${sx(x)}" y1="${H - B}" y2="${H - B - 4}" stroke="#262626" stroke-width="0.8"/><text x="${sx(x)}" y="${H - B + 14}" text-anchor="middle">${+x.toPrecision(3)}</text>`;
+    for (let y = 0; y <= ymax + 1e-12; y += dy) g += `<line x1="${L}" x2="${W - R}" y1="${sy(y)}" y2="${sy(y)}" stroke="#e3e3e3" stroke-width="0.6"/><line x1="${L}" x2="${L + 4}" y1="${sy(y)}" y2="${sy(y)}" stroke="#262626" stroke-width="0.8"/><text x="${L - 6}" y="${sy(y) + 4}" text-anchor="end">${+y.toPrecision(3)}</text>`;
     g += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">${opts.xlabel}</text>`;
     g += `<text transform="translate(12 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle">${opts.ylabel}</text>`;
+    g += `<rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="none" stroke="#262626" stroke-width="0.8"/>`;
     series.forEach((s) => {
       const d = s.pts.map((p, i) => (i ? "L" : "M") + sx(p[0]).toFixed(1) + " " + sy(p[1]).toFixed(1)).join(" ");
-      g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" ${s.dash ? 'stroke-dasharray="5 4"' : ""}/>`;
+      g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="1.5" ${s.dash ? 'stroke-dasharray="5 4"' : ""}/>`;
       if (s.dots) s.pts.forEach((p) => { g += `<circle cx="${sx(p[0])}" cy="${sy(p[1])}" r="3" fill="${s.color}"/>`; });
     });
     (opts.marks || []).forEach((m) => {
@@ -289,21 +293,39 @@
     const r = ColumnModel.compute(c, M, demand, tests);
     const w = ColumnModel.warnings(c, r, M, demand);
 
-    // 1 deformation
-    const D = r.deform, A = r.asce41, E = r.ec8;
+    // 1 design variables and range check
+    const notest = { theta_y: [], theta_p: [], theta_80: [], v_peak: [] };
+    const r0 = ColumnModel.compute(c, M, demand, notest);
+    document.getElementById("sum-in").innerHTML =
+      `<span>ν <b>${fmt(c.nu, 3)}</b></span><span>ρ<sub>l</sub> <b>${fmt(100 * c.rho_l, 2)} %</b></span>` +
+      `<span>ρ<sub>sh</sub> <b>${fmt(100 * c.rho_sh, 2)} %</b></span><span>L<sub>s</sub>/h <b>${fmt(c.ls / c.h, 2)}</b></span>` +
+      `<span>V<sub>p</sub>/V<sub>o</sub> <b>${fmt(r.vp_vo, 2)}</b></span><span>Shear class <b>${r.cls}</b></span>`;
+    const rangeItems = w.filter((x) => x.level !== "code").map((x) => x.level === "range"
+      ? `<li class="range">${NAMES[x.key] || x.key} = ${(+x.value.toPrecision(3))} is outside the tested range ${+x.range[0].toPrecision(3)}–${+x.range[1].toPrecision(3)}.</li>`
+      : `<li class="${x.level}">${x.text}</li>`);
+    document.getElementById("warn").innerHTML = rangeItems.length ? rangeItems.join("") : '<li class="none">All inputs are inside the range of the tests.</li>';
+
+    // 2-4 medians, anchoring and fractile values
+    const D = r.deform, D0 = r0.deform, A = r.asce41, E = r.ec8;
     const nt = Math.max(D.theta_y.k, D.theta_p.k, D.theta_80.k, r.strength.k);
     document.getElementById("sum-def").innerHTML =
-      `<span>Shear class <b>${r.cls}</b></span><span>V<sub>p</sub>/V<sub>o</sub> <b>${fmt(r.vp_vo, 2)}</b></span><span>ρ<sub>sh</sub> <b>${fmt(100 * c.rho_sh, 2)} %</b></span>` +
-      `<span>Basis <b>${nt ? "anchored on " + nt + " test" + (nt > 1 ? "s" : "") : "design data only"}</b></span>`;
-    const cells = (q) => `<td class="num">${pct(q.median)}</td><td class="num">${pct(q.lo)}</td><td class="num">${pct(q.hi)}</td><td class="num">${pct(q.d05)}</td><td class="num">${pct(q.d10)}</td>`;
-    const flagA = Number.isFinite(A.theta_C) && A.theta_C > D.theta_80.hi ? " flag" : "";
-    const flagE = E.theta_um > D.theta_80.hi ? " flag" : "";
+      `<span>Tests of the same programme <b>k = ${nt}</b></span><span>${nt ? "anchored medians used in step 4 and in the outputs" : "no test: predicted medians used"}</span>`;
+    const kN = (x) => Number.isFinite(x) ? x.toFixed(0) + " kN" : "–";
+    const row = (lab, q0, q, f) => `<tr><td>${lab}</td><td class="num">${f(q0.median)}</td><td class="num">${q.k ? f(q.median) : "–"}</td>` +
+      `<td class="num">${f(q.lo)} – ${f(q.hi)}</td><td class="num">${f(q.d05)}</td><td class="num">${f(q.d10)}</td></tr>`;
     document.getElementById("t-def").innerHTML =
-      "<thead><tr><th>Drift</th><th>Tool median</th><th>16 %</th><th>84 %</th><th>Design 5 %</th><th>Design 10 %</th><th>ASCE 41-17</th><th>EN 1998-3</th></tr></thead><tbody>" +
-      `<tr><td>Yield θ<sub>y</sub></td>${cells(D.theta_y)}<td class="num">${pct(A.theta_y)}</td><td class="num">–</td></tr>` +
-      `<tr><td>Peak force θ<sub>p</sub></td>${cells(D.theta_p)}<td class="num">–</td><td class="num">–</td></tr>` +
-      `<tr><td>20 % strength loss θ<sub>80</sub></td>${cells(D.theta_80)}<td class="num${flagA}">${pct(A.theta_C)} <span class="u">(C)</span></td><td class="num${flagE}">${pct(E.theta_um)}</td></tr>` +
-      "</tbody>";
+      "<thead><tr><th></th><th>2 Predicted median</th><th>3 Anchored median</th><th>16–84 %</th><th>4 Fractile 5 %</th><th>Fractile 10 %</th></tr></thead><tbody>" +
+      row("Yield drift θ<sub>y</sub>", D0.theta_y, D.theta_y, pct) +
+      row("Drift at peak force θ<sub>p</sub>", D0.theta_p, D.theta_p, pct) +
+      row("Drift at 20 % strength loss θ<sub>80</sub>", D0.theta_80, D.theta_80, pct) +
+      row("Peak force F<sub>peak</sub>", r0.strength, r.strength, kN) + "</tbody>";
+    const a10 = Number.isFinite(A.theta_C) ? A.theta_y + 0.47 * (A.theta_C - A.theta_y) : NaN;
+    document.getElementById("t-code").innerHTML =
+      "<thead><tr><th></th><th>ASCE/SEI 41-17</th><th>EN 1998-3</th></tr></thead><tbody>" +
+      `<tr><td>Median-type value</td><td class="num">${pct(A.theta_C)} (point C)</td><td class="num">${pct(E.theta_um)} (θ<sub>um</sub>, γ<sub>el</sub> = 1)</td></tr>` +
+      `<tr><td>Design value</td><td class="num">${pct(a10)} (θ<sub>y</sub> + 0.47a, 10 %)</td><td class="num">${pct(E.theta_um_primary)} (γ<sub>el</sub> = 1.5)</td></tr></tbody>`;
+    const codeItems = w.filter((x) => x.level === "code").map((x) => `<li class="code">${x.text}</li>`);
+    document.getElementById("warn-code").innerHTML = codeItems.join("");
 
     // 2 fragility
     const F = r.fragility;
@@ -326,12 +348,12 @@
     // 3 model
     const bb = r.backbone;
     document.getElementById("sum-model").innerHTML =
-      `<span>V<sub>p</sub> (flexure) <b>${fmt(r.vp, 0)} kN</b></span><span>Peak force <b>${fmt(r.v_peak, 0)} kN</b> <span class="u">σ<sub>ln</sub> ${fmt(r.v_sigma, 2)}; design 5 % ${fmt(r.strength.d05, 0)} kN</span></span>`;
+      `<span>V<sub>p</sub> (flexure) <b>${fmt(r.vp, 0)} kN</b></span><span>Peak force <b>${fmt(r.v_peak, 0)} kN</b> <span class="u">σ<sub>ln</sub> ${fmt(r.v_sigma, 2)}; fractile 5 % ${fmt(r.strength.d05, 0)} kN</span></span>`;
     const ab = Number.isFinite(A.theta_C) ? (() => {
       const ue = Math.max(A.theta_E, A.theta_C * 1.01), cr = Math.max(A.c, 0.05);
       return [[0, 0], [A.theta_y * c.ls, r.vp], [A.theta_C * c.ls, r.vp], [(A.theta_C + 0.05 * (ue - A.theta_C)) * c.ls, cr * r.vp], [ue * c.ls, cr * r.vp]];
     })() : null;
-    const ser = [{ name: "Tool backbone", pts: [[0, 0], ...bb], color: "var(--accent)", dots: true }];
+    const ser = [{ name: "Predicted backbone", pts: [[0, 0], ...bb], color: "var(--accent)", dots: true }];
     if (ab) ser.push({ name: "ASCE 41-17", pts: ab, color: "var(--chart-2)", dash: true });
     document.getElementById("bb-chart").innerHTML = chart(ser, { xlabel: "Lateral displacement (mm)", ylabel: "Force (kN)", aria: "Backbone curves" });
     const cy = r.cyclic;
@@ -341,11 +363,6 @@
       bb.map((p, i) => `<tr><td>Point ${i + 1} (mm, kN)</td><td class="num">${fmt(p[0], 1)}, ${fmt(p[1], 0)}</td></tr>`).join("") + "</tbody>";
     document.getElementById("cmd").textContent = command(bb, cy);
 
-    // 4 checks
-    const items = w.map((x) => x.level === "range"
-      ? `<li class="range">${NAMES[x.key] || x.key} = ${(+x.value.toPrecision(3))} is outside the tested range ${+x.range[0].toPrecision(3)}–${+x.range[1].toPrecision(3)}.</li>`
-      : `<li class="${x.level}">${x.text}</li>`);
-    document.getElementById("warn").innerHTML = items.length ? items.join("") : '<li class="none">All inputs are inside the tested range and no code value is less conservative than the tool.</li>';
   }
 
   const testIds = ["t1_ty", "t2_ty", "t1_tp", "t2_tp", "t1_t80", "t2_t80", "t1_v", "t2_v"];

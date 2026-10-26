@@ -155,9 +155,9 @@
       w.push({ level: "limit", key: "T", text: "Period outside 0.3-1.0 s: fragility taken at the nearest analysed period." });
     const hi80 = r.deform.theta_80.hi;
     if (Number.isFinite(r.asce41.theta_C) && r.asce41.theta_C > hi80)
-      w.push({ level: "code", key: "asce41", text: "ASCE 41-17 drift at point C exceeds the 84 % bound of the tool's drift at 20 % strength loss." });
+      w.push({ level: "code", key: "asce41", text: "ASCE 41-17 drift at point C exceeds the 84 % bound of the predicted drift at 20 % strength loss." });
     if (r.ec8.theta_um > hi80)
-      w.push({ level: "code", key: "ec8", text: "EN 1998-3 ultimate chord rotation exceeds the 84 % bound of the tool's drift at 20 % strength loss." });
+      w.push({ level: "code", key: "ec8", text: "EN 1998-3 ultimate chord rotation exceeds the 84 % bound of the predicted drift at 20 % strength loss." });
     return w;
   }
 
