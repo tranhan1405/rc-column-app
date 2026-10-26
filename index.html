@@ -51,6 +51,7 @@
   fieldset.tests { grid-template-columns: auto 1fr 1fr; align-items: center; }
   fieldset.tests .hint { grid-column: 1 / -1; margin: 0 0 2px; font-size: 0.75rem; color: var(--muted); }
   fieldset.tests .th { font-size: 0.78rem; color: var(--ink); font-weight: 700; }
+  fieldset.tests span[id^=dz] { font-weight: 400; color: var(--muted); font-size: 0.72rem; }
   fieldset.tests .rl { font-size: 0.8rem; color: var(--muted); white-space: nowrap; padding-right: 4px; }
   .example { font-size: 0.75rem; color: var(--muted); border-top: 1px dashed var(--rule); padding-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   button { font-family: var(--body); font-size: 0.8rem; border: 1px solid #a0a0a0; background: linear-gradient(#fdfdfd, #e5e5e5);
@@ -144,12 +145,14 @@
       </fieldset>
       <fieldset class="tests">
         <legend>Step 3: tests of the same programme (optional)</legend>
-        <p class="hint">Up to two tests of columns built and tested like this one. Optional.</p>
+        <p class="hint">Up to two tests of columns of the same programme. For a test column of another design, enter its design data above and press "Store design", then enter the assessed column.</p>
         <span class="th"></span><span class="th">Test 1</span><span class="th">Test 2</span>
         <span class="rl">θ<sub>y</sub> %</span><input id="t1_ty" type="number" step="any" aria-label="Test 1 yield drift, percent"><input id="t2_ty" type="number" step="any" aria-label="Test 2 yield drift, percent">
         <span class="rl">θ<sub>p</sub> %</span><input id="t1_tp" type="number" step="any" aria-label="Test 1 drift at peak force, percent"><input id="t2_tp" type="number" step="any" aria-label="Test 2 drift at peak force, percent">
         <span class="rl">θ<sub>80</sub> %</span><input id="t1_t80" type="number" step="any" aria-label="Test 1 drift at 20 percent strength loss, percent"><input id="t2_t80" type="number" step="any" aria-label="Test 2 drift at 20 percent strength loss, percent">
         <span class="rl">F<sub>peak</sub> kN</span><input id="t1_v" type="number" step="any" aria-label="Test 1 peak force, kN"><input id="t2_v" type="number" step="any" aria-label="Test 2 peak force, kN">
+        <span class="rl">Design</span><button type="button" id="store1">Store design</button><button type="button" id="store2">Store design</button>
+        <span class="rl"></span><span class="th" id="dz1">same as assessed</span><span class="th" id="dz2">same as assessed</span>
       </fieldset>
       <div class="example">Example column, not a tested specimen. <button type="button" id="reset">Reset example</button></div>
     </form>
@@ -217,6 +220,7 @@
   const defaults = {};
   ids.forEach((k) => { defaults[k] = document.getElementById(k).value; });
   let lang = "tcl";
+  const testDesign = [null, null];   // design of the tested columns, null = same as assessed
   const fmt = (x, d) => Number.isFinite(x) ? x.toFixed(d) : "–";
   const pct = (x) => Number.isFinite(x) ? (100 * x).toFixed(2) + " %" : "–";
   const NAMES = { b: "b", h: "h", ls: "L_s", ls_h: "L_s/h", fc: "f'c", fyl: "f_y", fyt: "f_yt", rho_l: "ρ_l",
@@ -228,9 +232,9 @@
     const c = { b: v.b, h: v.h, ls: v.ls, cover: v.cover, fc: v.fc, fyl: v.fyl, fyt: v.fyt, rho_l: v.rho_l / 100,
       d_hoop: v.d_hoop, s: v.s, n_perp: v.n_perp, n_par: v.n_par,
       rho_sh: v.legs * Math.PI * v.d_hoop * v.d_hoop / 4 / (v.b * v.s), nu: v.P * 1e3 / (v.b * v.h * v.fc) };
-    const tv = (a) => a.map((k) => parseFloat(document.getElementById(k).value)).filter((x) => Number.isFinite(x) && x > 0);
+    const tv = (a) => a.map((k) => parseFloat(document.getElementById(k).value));
     const tests = { theta_y: tv(["t1_ty", "t2_ty"]).map((x) => x / 100), theta_p: tv(["t1_tp", "t2_tp"]).map((x) => x / 100),
-      theta_80: tv(["t1_t80", "t2_t80"]).map((x) => x / 100), v_peak: tv(["t1_v", "t2_v"]) };
+      theta_80: tv(["t1_t80", "t2_t80"]).map((x) => x / 100), v_peak: tv(["t1_v", "t2_v"]) };   // by slot, NaN if empty
     return { c: c, demand: { T: v.T, mass_t: v.mass, sa_g: v.sa }, tests: tests, ok: Object.values(v).every(Number.isFinite) };
   }
 
@@ -281,7 +285,20 @@
       document.getElementById("warn").innerHTML = '<li class="limit">Enter positive values in every field to compute the model.</li>';
       return;
     }
-    const r = ColumnModel.compute(c, M, demand, tests);
+    // Eq. 5: each test enters through ln(test / prediction for the tested column); the core shifts by
+    // ln(x / median of the assessed column), so each value is scaled by (median assessed) / (median tested column)
+    const none = { theta_y: [], theta_p: [], theta_80: [], v_peak: [] };
+    const base = ColumnModel.compute(c, M, null, none);
+    const medOf = (rr, key) => key === "v_peak" ? rr.strength.median : rr.deform[key].median;
+    const adj = { theta_y: [], theta_p: [], theta_80: [], v_peak: [] };
+    [0, 1].forEach((slot) => {
+      const rt = testDesign[slot] ? ColumnModel.compute(testDesign[slot], M, null, none) : base;
+      for (const key in adj) {
+        const x = tests[key][slot];
+        if (Number.isFinite(x) && x > 0) adj[key].push(x * medOf(base, key) / medOf(rt, key));
+      }
+    });
+    const r = ColumnModel.compute(c, M, demand, adj);
     const w = ColumnModel.warnings(c, r, M, demand);
 
     // 1 design variables and range check
@@ -357,9 +374,16 @@
   }
 
   const testIds = ["t1_ty", "t2_ty", "t1_tp", "t2_tp", "t1_t80", "t2_t80", "t1_v", "t2_v"];
+  [1, 2].forEach((k) => document.getElementById("store" + k).addEventListener("click", () => {
+    const { c, ok } = read();
+    if (!ok) return;
+    testDesign[k - 1] = Object.assign({}, c);
+    document.getElementById("dz" + k).textContent = `stored: Ls ${c.ls} mm, s ${c.s} mm`;
+    render();
+  }));
   ids.concat(testIds).forEach((k) => document.getElementById(k).addEventListener("input", render));
   document.getElementById("f").addEventListener("submit", (e) => e.preventDefault());
-  document.getElementById("reset").addEventListener("click", () => { ids.forEach((k) => { document.getElementById(k).value = defaults[k]; }); testIds.forEach((k) => { document.getElementById(k).value = ""; }); render(); });
+  document.getElementById("reset").addEventListener("click", () => { ids.forEach((k) => { document.getElementById(k).value = defaults[k]; }); testIds.forEach((k) => { document.getElementById(k).value = ""; }); testDesign[0] = testDesign[1] = null; document.getElementById("dz1").textContent = document.getElementById("dz2").textContent = "same as assessed"; render(); });
   const setLang = (l) => { lang = l; document.getElementById("lang-tcl").setAttribute("aria-pressed", l === "tcl"); document.getElementById("lang-py").setAttribute("aria-pressed", l === "py"); render(); };
   document.getElementById("lang-tcl").addEventListener("click", () => setLang("tcl"));
   document.getElementById("lang-py").addEventListener("click", () => setLang("py"));
@@ -369,6 +393,7 @@
     try { navigator.clipboard.writeText(t).then(() => { msg.textContent = "Copied."; }, fallback); } catch (e) { fallback(); }
   });
   document.getElementById("ver").textContent = String(M.version).split(" ")[0];
+  window.RCApp = { render: render, storeDesign: (k) => document.getElementById("store" + k).click() };
   render();
 })();
 </script>
