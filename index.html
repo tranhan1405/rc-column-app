@@ -8,7 +8,7 @@
 <style>
   /* Layout: calculation sheet - inputs on the left as a narrow form column, results on the right as numbered sheets */
   :root {
-    --bg: #f0f0f0;
+    --bg: #ffffff;
     --sheet: #ffffff;
     --ink: #000000;
     --muted: #4d4d4d;
@@ -68,6 +68,7 @@
     color: var(--ink); border-radius: 2px; padding: 3px 10px; cursor: pointer; }
   button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
   .results { display: grid; gap: 16px; min-width: 0; }
+  .ftitle { font-weight: 700; font-size: 0.95rem; margin: -16px -16px 0; padding: 5px 16px; background: #e6e6e6; border-bottom: 1px solid #a0a0a0; }
   .sheet { padding: 16px 18px; min-width: 0; }
   .sheet h2 { font-family: var(--display); font-weight: 700; font-size: 0.95rem; margin: -16px -18px 10px; padding: 5px 18px; background: #e6e6e6; border-bottom: 1px solid #a0a0a0; display: flex; gap: 8px; align-items: baseline; }
   .sheet h2 .no { font-family: var(--mono); font-weight: 500; font-size: 0.8rem; color: var(--accent); }
@@ -118,8 +119,9 @@
 
   <div class="grid">
     <form id="f" novalidate>
+      <div class="ftitle">Step 1: design data</div>
       <fieldset>
-        <legend>Step 1: design data — geometry</legend>
+        <legend>Geometry</legend>
         <label for="b"><span class="lt">Width b <span class="u">mm, perpendicular to load</span></span><input id="b" type="number" step="any" value="400"></label>
         <label for="h"><span class="lt">Depth h <span class="u">mm, parallel to load</span></span><input id="h" type="number" step="any" value="400"></label>
         <label for="ls"><span class="lt">Shear span L<sub>s</sub> <span class="u">mm</span></span><input id="ls" type="number" step="any" value="1400"></label>
@@ -322,7 +324,7 @@
     const a10 = Number.isFinite(A.theta_C) ? A.theta_y + 0.47 * (A.theta_C - A.theta_y) : NaN;
     document.getElementById("t-code").innerHTML =
       "<thead><tr><th></th><th>ASCE/SEI 41-17</th><th>EN 1998-3</th></tr></thead><tbody>" +
-      `<tr><td>Median-type value</td><td class="num">${pct(A.theta_C)} (point C)</td><td class="num">${pct(E.theta_um)} (θ<sub>um</sub>, γ<sub>el</sub> = 1)</td></tr>` +
+      `<tr><td>Stated median (ASCE) or mean (EN)</td><td class="num">${pct(A.theta_C)} (point C)</td><td class="num">${pct(E.theta_um)} (θ<sub>um</sub>, γ<sub>el</sub> = 1)</td></tr>` +
       `<tr><td>Design value</td><td class="num">${pct(a10)} (θ<sub>y</sub> + 0.47a, 10 %)</td><td class="num">${pct(E.theta_um_primary)} (γ<sub>el</sub> = 1.5)</td></tr></tbody>`;
     const codeItems = w.filter((x) => x.level === "code").map((x) => `<li class="code">${x.text}</li>`);
     document.getElementById("warn-code").innerHTML = codeItems.join("");
@@ -342,7 +344,7 @@
     document.getElementById("frag-chart").innerHTML = chart([
       { name: "LS1 peak", pts: curve(F.LS1), color: "var(--accent)", dash: true },
       { name: "LS80 near collapse", pts: curve(F.LS80), color: "var(--chart-2)" }],
-      { xmax: sMax, ymax: 1, xlabel: "Sa(T) (g)", ylabel: "Probability of exceedance", aria: "Fragility curves",
+      { xmax: sMax, ymax: 1, xlabel: "Sₐ(T) (g)", ylabel: "Probability of exceedance", aria: "Fragility curves",
         marks: [{ x: demand.sa_g, label: "demand" }] });
 
     // 3 model
@@ -377,7 +379,7 @@
     const fallback = () => { const rg = document.createRange(); rg.selectNodeContents(document.getElementById("cmd")); const s = window.getSelection(); s.removeAllRanges(); s.addRange(rg); msg.textContent = "Selected; press Ctrl+C."; };
     try { navigator.clipboard.writeText(t).then(() => { msg.textContent = "Copied."; }, fallback); } catch (e) { fallback(); }
   });
-  document.getElementById("ver").textContent = M.version;
+  document.getElementById("ver").textContent = String(M.version).split(" ")[0];
   render();
 })();
 </script>
