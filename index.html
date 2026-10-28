@@ -145,7 +145,7 @@
       </fieldset>
       <fieldset class="tests">
         <legend>Step 3: tests of the same programme (optional)</legend>
-        <p class="hint">Up to two tests of columns of the same programme. For a test column of another design, enter its design data above and press "Store design", then enter the assessed column.</p>
+        <p class="hint">Up to two tests of columns of the same programme. For a test column of another design, enter its design data above and press "Store design", then enter the assessed column. Anchoring was validated only for tests of the same programme; tests from another laboratory or of unlike columns can bias the anchored values.</p>
         <span class="th"></span><span class="th">Test 1</span><span class="th">Test 2</span>
         <span class="rl">θ<sub>y</sub> %</span><input id="t1_ty" type="number" step="any" aria-label="Test 1 yield drift, percent"><input id="t2_ty" type="number" step="any" aria-label="Test 2 yield drift, percent">
         <span class="rl">θ<sub>p</sub> %</span><input id="t1_tp" type="number" step="any" aria-label="Test 1 drift at peak force, percent"><input id="t2_tp" type="number" step="any" aria-label="Test 2 drift at peak force, percent">
@@ -317,7 +317,7 @@
     const D = r.deform, D0 = r0.deform, A = r.asce41, E = r.ec8;
     const nt = Math.max(D.theta_y.k, D.theta_p.k, D.theta_80.k, r.strength.k);
     document.getElementById("sum-def").innerHTML =
-      `<span>Tests of the same programme <b>k = ${nt}</b></span><span>${nt ? "anchored medians used in step 4 and in the outputs" : "no test: predicted medians used"}</span>`;
+      `<span>Tests of the same programme <b>k = ${nt}</b></span><span>${nt ? "anchored medians used in step 4 and in the outputs (valid for tests of the same programme)" : "no test: predicted medians used"}</span>`;
     const kN = (x) => Number.isFinite(x) ? x.toFixed(0) + " kN" : "–";
     const row = (lab, q0, q, f) => `<tr><td>${lab}</td><td class="num">${f(q0.median)}</td><td class="num">${q.k ? f(q.median) : "–"}</td>` +
       `<td class="num">${f(q.lo)} – ${f(q.hi)}</td><td class="num">${f(q.d05)}</td><td class="num">${f(q.d10)}</td></tr>`;
